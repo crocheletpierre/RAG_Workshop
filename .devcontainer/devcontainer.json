@@ -1,7 +1,7 @@
 {
   "name": "MCP Workshop",
   "image": "ghcr.io/astral-sh/uv:debian",
-  "postCreateCommand": "uv run python -m ensurepip && uv sync",
+  "postCreateCommand": "export TOKENIZERS_PARALLELISM=\"false\" && uv run python -m ensurepip && uv sync",
   "postAttachCommand": "uv run jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root",
   "forwardPorts": [
     8888

@@ -271,9 +271,7 @@ def main():
 if __name__ == "__main__":
     # Check if GitHub token is set
     if GITHUB_TOKEN == "your-github-token-here":
-        print("⚠️  Please set your GITHUB_TOKEN environment variable or update the script.")
-        print("   You can create a token at: https://github.com/settings/tokens")
-        print("   The token needs 'copilot' scope.")
+        print("⚠️  Please set your GITHUB_TOKEN environment variable.")
         print("\n   export GITHUB_TOKEN='your-token-here'")
     else:
         main()

@@ -28,7 +28,7 @@ Create a GitHub Personal Access Token:
 - Go to https://github.com/settings/tokens
 - Click "Generate new token (classic)"
 - Give it a name like "RAG Workshop"
-- Select the copilot scope (this is key!)
+- Select the copilot scope
 - Generate and copy the token
 
 
