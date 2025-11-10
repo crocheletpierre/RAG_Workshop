@@ -9,25 +9,19 @@ from pathlib import Path
 from typing import List, Dict
 import numpy as np
 
-# You'll need to install these packages:
-# pip install openai chromadb python-docx PyPDF2
-
 import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
 
-# Configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "your-github-token-here")
-DOCS_FOLDER = "./my_documents"  # Put your documents here
+DOCS_FOLDER = "./my_documents"
 CHROMA_DB_PATH = "./chroma_db"
 
-# Initialize OpenAI client pointing to GitHub's endpoint
 client = OpenAI(
     base_url="https://models.inference.ai.azure.com",
     api_key=GITHUB_TOKEN,
 )
 
-# Initialize ChromaDB (vector database)
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
 
@@ -79,20 +73,19 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]
         end = start + chunk_size
         chunk = text[start:end]
         
-        # Try to break at sentence or paragraph boundary
         if end < len(text):
             last_period = chunk.rfind('.')
             last_newline = chunk.rfind('\n')
             break_point = max(last_period, last_newline)
             
-            if break_point > chunk_size * 0.5:  # Only break if we're past halfway
+            if break_point > chunk_size * 0.5:
                 chunk = chunk[:break_point + 1]
                 end = start + break_point + 1
         
         chunks.append(chunk.strip())
         start = end - overlap
     
-    return [c for c in chunks if c]  # Remove empty chunks
+    return [c for c in chunks if c]
 
 
 def create_or_get_collection(collection_name: str = "knowledge_base"):
@@ -174,13 +167,11 @@ def generate_answer(query: str, context_chunks: List[Dict]) -> str:
     """
     Generate an answer using retrieved context and GitHub Copilot models.
     """
-    # Prepare context from retrieved chunks
     context = "\n\n".join([
         f"[From {chunk['metadata']['filename']}]\n{chunk['content']}"
         for chunk in context_chunks
     ])
     
-    # Create prompt with context
     prompt = f"""Based on the following context from my personal documents, please answer the question.
 If the answer is not in the context, say "I don't have information about that in your documents."
 
@@ -191,7 +182,6 @@ Question: {query}
 
 Answer:"""
     
-    # Call GitHub Copilot API
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -221,18 +211,10 @@ def main():
         return
     
     # Step 2: Create/get collection
-    collection = create_or_get_collection()
+    # TODO: Add collection creation here
     
     # Step 3: Index documents (only if collection is empty)
-    if collection.count() == 0:
-        index_documents(documents, collection)
-    else:
-        print(f"Collection already has {collection.count()} chunks indexed.")
-        reindex = input("Re-index documents? (y/n): ").lower()
-        if reindex == 'y':
-            chroma_client.delete_collection(name="knowledge_base")
-            collection = create_or_get_collection()
-            index_documents(documents, collection)
+    # TODO: Index documents here. Bonus: what if the collection is not empty?
     
     # Step 4: Interactive query loop
     print("\n" + "="*50)
@@ -249,27 +231,23 @@ def main():
         if not query:
             continue
         
-        # Search for relevant chunks
         print("\n📚 Searching knowledge base...")
-        relevant_chunks = search_knowledge_base(query, collection, n_results=3)
+        # TODO: search the knowledge base for relevant chunks
         
         if not relevant_chunks:
             print("No relevant information found.")
             continue
         
-        # Show retrieved sources
         print("\n📄 Found relevant information in:")
         for chunk in relevant_chunks:
             print(f"  - {chunk['metadata']['filename']}")
         
-        # Generate answer
         print("\n💡 Generating answer...")
         answer = generate_answer(query, relevant_chunks)
         print(f"\n{answer}")
 
 
 if __name__ == "__main__":
-    # Check if GitHub token is set
     if GITHUB_TOKEN == "your-github-token-here":
         print("⚠️  Please set your GITHUB_TOKEN environment variable.")
         print("\n   export GITHUB_TOKEN='your-token-here'")
